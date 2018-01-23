@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+    matrix:
+        image: avhost/docker-matrix:latest
+        restart: always
+        command: start
+        environment:
+            SERVER_NAME: "localhost"
+            REPORT_STATS: "no"
+        expose:
+            - "8008"
+        ports:
+            - "8448:8448"
+            - "8008:8008"
+            - "3478:3478"
+            - "3479:3479"
+            - "5349:5349"
+            - "5350:5350"
+        volumes:
+            - ./data:/data
+
+    sslproxy:
+        image: nginx:1.13.8
+        restart: always
+        ports:
+            - "443:443"
+            - "80:80"
+        links:
+            - matrix
+            - riot
+        volumes:
+            - ./sslproxy/etc/nginx:/etc/nginx
+
+    riot:
+        image: avhost/docker-matrix-riot:latest
+        restart: always
+        command: start
+        environment:
+            VIRTUAL_HOST: localhost
+        expose:
+            - "8765"
+        volumes:
+            - ./riot/data:/data
